@@ -8,7 +8,7 @@ import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { AppState, Customer, CustomerTransaction, Expense, Language, Product, Sale, ShopSettings } from './types';
 import { getEmptyAppState, getInitialDemoState } from './services/storage';
 import { auth } from './services/firebase';
-import { loadUserAppState, saveUserAppState } from './services/firestoreStorage';
+import { getFirebaseErrorMessage, loadUserAppState, saveUserAppState } from './services/firestoreStorage';
 import { getTodayDateString } from './utils/formatters';
 import { Header } from './components/Header';
 import { Navigation, TabType } from './components/Navigation';
@@ -27,6 +27,9 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [isCloudStateReady, setIsCloudStateReady] = useState(false);
+  const [cloudError, setCloudError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [hydrationAttempt, setHydrationAttempt] = useState(0);
   const [currentTab, setCurrentTab] = useState<TabType>('dashboard');
 
   // Modal triggers from dashboard quick actions
@@ -39,6 +42,8 @@ export default function App() {
     setCurrentUser(user);
     setAuthReady(true);
     setIsCloudStateReady(false);
+    setCloudError(null);
+    setSaveError(null);
     if (!user) setAppState(getEmptyAppState());
   }), []);
 
@@ -46,8 +51,12 @@ export default function App() {
     if (!currentUser) return;
     let cancelled = false;
     const hydrate = async () => {
+      let succeeded = false;
       try {
-        const cloudState = await loadUserAppState(currentUser.uid);
+        const cloudState = await Promise.race([
+          loadUserAppState(currentUser.uid),
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Firebase request timeout')), 15000)),
+        ]);
         if (cancelled) return;
         if (cloudState) {
           setAppState(cloudState);
@@ -58,22 +67,28 @@ export default function App() {
           setAppState(emptyState);
           await saveUserAppState(currentUser.uid, emptyState);
         }
+        succeeded = true;
+        setCloudError(null);
       } catch (error) {
         console.error('Could not load Firestore state:', error);
+        if (!cancelled) setCloudError(getFirebaseErrorMessage(error, 'load'));
       } finally {
-        if (!cancelled) setIsCloudStateReady(true);
+        if (!cancelled) setIsCloudStateReady(succeeded);
       }
     };
     void hydrate();
     return () => { cancelled = true; };
-  }, [currentUser]);
+  }, [currentUser, hydrationAttempt]);
 
   // Sync each authenticated user's state to their private Firestore document.
   useEffect(() => {
     if (!currentUser || !isCloudStateReady) return;
-    void saveUserAppState(currentUser.uid, appState).catch((error) => {
-      console.error('Could not save Firestore state:', error);
-    });
+    void saveUserAppState(currentUser.uid, appState)
+      .then(() => setSaveError(null))
+      .catch((error) => {
+        console.error('Could not save Firestore state:', error);
+        setSaveError(getFirebaseErrorMessage(error, 'save'));
+      });
   }, [appState, currentUser, isCloudStateReady]);
 
   // Update HTML document direction and language when language switches
@@ -88,6 +103,17 @@ export default function App() {
   }
   if (!currentUser) {
     return <AuthView onAuthenticated={() => undefined} />;
+  }
+  if (cloudError) {
+    return (
+      <div className="auth-shell">
+        <section className="auth-card" role="alert">
+          <h2>Ledger load nahi ho saka</h2>
+          <p className="auth-subtitle">{cloudError}</p>
+          <button className="auth-primary" type="button" onClick={() => { setCloudError(null); setIsCloudStateReady(false); setHydrationAttempt((value) => value + 1); }}>Retry</button>
+        </section>
+      </div>
+    );
   }
   if (!isCloudStateReady) {
     return <div className="auth-shell"><p className="auth-footer">Loading your private ledger…</p></div>;
@@ -513,6 +539,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-100 text-slate-900 selection:bg-emerald-200">
+      {saveError && <div className="mx-auto mt-2 w-[calc(100%-1.5rem)] max-w-5xl rounded-xl bg-rose-100 px-3 py-2 text-xs font-semibold text-rose-800" role="alert">{saveError}</div>}
       {/* App Header */}
       <Header
         settings={appState.settings}
