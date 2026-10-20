@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-urdu: 'Noto Sans Arabic', 'Jameel Noori Nastaleeq', 'Urdu Typesetting', Tahoma, system-ui, sans-serif;
+    --font-latin: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  [dir="rtl"] {
+    font-family: var(--font-urdu);
+  }
+
+  [dir="ltr"] {
+    font-family: var(--font-latin);
+  }
+
+  /* Safe area insets for mobile devices / notch / navigation bars */
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Number display utility - numbers in Pakistan accounting look best in standard Latin digits */
+.font-numeric {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  font-variant-numeric: tabular-nums;
+  direction: ltr !important;
+  display: inline-block;
+}
+
+/* Print styling for customer receipts & daily closing */
+@media print {
+  header, nav, .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}

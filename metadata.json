@@ -1,0 +1,6 @@
+{
+  "name": "Hisab Dost - Shopkeeper Accounting PWA",
+  "description": "Simple, reliable, mobile-first accounting PWA for small shopkeepers in Pakistan. Track daily sales, expenses, khata (customer credit/debt), inventory, and profits in Urdu and Roman Urdu.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
