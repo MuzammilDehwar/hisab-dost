@@ -347,15 +347,17 @@ export const SettingsView: React.FC<Props> = ({
               {t.privacyNoticeTitle}
             </h3>
             <p className="text-xs text-emerald-100/90 leading-relaxed mt-1">
-              {t.privacyNoticeDesc}
+              {language === 'ur'
+                ? 'آپ کے کاروباری ریکارڈ authenticated Firebase اکاؤنٹ کے ساتھ محفوظ Firestore میں محفوظ رہتے ہیں۔'
+                : 'Your business records are stored in Firestore under your authenticated Firebase account.'}
             </p>
             <div className="mt-2 text-[11px] text-amber-200 bg-emerald-900/60 p-2 rounded-lg font-medium">
               ⚠️ {language === 'ur'
-                ? 'اہم حفاظتی نوٹ: آپ کا ڈیٹا براؤزر کے لوکل اسٹوریج میں محفوظ ہوتا ہے جو کہ انکرپٹڈ (Encrypted) نہیں ہے۔ کسی دوسرے شخص کو اپنے مالی حسابات دیکھنے سے روکنے کے لیے اپنے موبائل یا لیپ ٹاپ پر پن، پاس ورڈ یا فنگر پرنٹ لاک کا استعمال کریں۔'
-                : 'Security Note: Data is saved directly in browser LocalStorage without hardware encryption. Protect your device with a PIN, biometric lock, or password.'}
+                ? 'اہم حفاظتی نوٹ: آپ کا ڈیٹا آپ کے Firebase اکاؤنٹ کے محفوظ Firestore ریکارڈ میں محفوظ ہوتا ہے اور صرف آپ کا authenticated UID اسے پڑھ سکتا ہے۔ اپنے اکاؤنٹ کا پاس ورڈ کسی کے ساتھ شیئر نہ کریں۔'
+                : 'Security Note: Data is stored in your authenticated Firebase Firestore account. Firestore rules allow access only to your own user ID; never share your password.'}
             </div>
             <div className="mt-2 text-[11px] text-emerald-300 font-medium">
-              ✓ 100% Client-side local storage &nbsp;•&nbsp; ✓ کوئی بادل یا سرور نہیں &nbsp;•&nbsp; ✓ زیرو ٹریکنگ
+              ✓ Firebase Auth &nbsp;•&nbsp; ✓ UID-scoped Firestore &nbsp;•&nbsp; ✓ No analytics tracking
             </div>
           </div>
         </div>

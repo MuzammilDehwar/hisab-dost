@@ -39,7 +39,8 @@ The app is free, lightweight, privacy-first, and provides complete localization 
    - **CSV / Excel Export**: One-click download with UTF-8 BOM encoding so Urdu and English appear crystal clear in Microsoft Excel.
 
 6. **Privacy-First & Offline-Ready PWA**:
-   - **Zero Cloud Leakage**: 100% client-side local persistence (`localStorage`). No customer names, phone numbers, or accounting numbers are ever transmitted to any external server or analytics tracker.
+   - **Firebase Authentication**: Email/password signup, login, logout, password reset, and optional Google/Facebook provider flows.
+   - **Private Cloud Data**: Each signed-in user's records are stored in their own Firestore document and protected by UID-based security rules.
    - **JSON Backup & Restore**: Shopkeepers can download a `.json` backup file of their entire ledger to their phone or computer at any time, and restore it on any device.
    - **Installable PWA**: Works offline through service worker caching (`vite-plugin-pwa`). Includes custom in-app install buttons for Android/Chrome and guided step-by-step instructions for iOS Safari.
 
@@ -48,11 +49,12 @@ The app is free, lightweight, privacy-first, and provides complete localization 
 ## 🔒 Data Storage & Privacy Architecture
 
 - **Where is data stored?**
-  All records (`sales`, `expenses`, `customers`, `customerTransactions`, `products`, `settings`) are stored exclusively in the browser's local storage under `hisabdost_app_state_v1`.
+  All records (`sales`, `expenses`, `customers`, `customerTransactions`, `products`, `settings`) are stored under `users/{uid}/app/state` in Cloud Firestore after authentication.
 - **Limitations**:
-  Clearing browser cookies and site data will reset local storage. For this reason, Hisab Dost provides an explicit **Download Backup (.json)** button in Settings, allowing shopkeepers to safeguard their ledgers offline.
+  The Settings screen still provides an explicit **Download Backup (.json)** button for offline safekeeping and migration.
 - **Privacy Assurance**:
-  No third-party trackers, Google Analytics, Facebook Pixel, or telemetry scripts are integrated.
+  Firestore rules deny all anonymous access and allow each user to read/write only their own UID path. No advertising tracker or Facebook Pixel is integrated.
+- **Rules file**: `firestore.rules` contains the deny-by-default rules and should be deployed with the Firebase CLI or Firebase Console.
 - **Future Advertising Integration Point**:
   The application is completely ad-free. A dedicated placeholder and documentation block are reserved in `src/views/SettingsView.tsx` (`FUTURE_AD_SLOT_RESERVED`) for future non-intrusive, privacy-respecting advertising if needed.
 
@@ -72,7 +74,7 @@ The app is free, lightweight, privacy-first, and provides complete localization 
 
 1. **Install Dependencies**:
    ```bash
-   npm install
+   npm install --legacy-peer-deps
    ```
 
 2. **Run Development Server**:
@@ -80,6 +82,15 @@ The app is free, lightweight, privacy-first, and provides complete localization 
    npm run dev
    ```
    The application runs on `http://localhost:3000`.
+
+4. **Enable Firebase Authentication**:
+   In Firebase Console, enable **Authentication → Sign-in method → Email/Password**. Enable Google and Facebook only if you want the corresponding social buttons active.
+
+5. **Deploy Firestore Rules**:
+   ```bash
+   firebase deploy --only firestore:rules
+   ```
+   The project is configured for Firebase project `hisab-dost-313`; authenticate the Firebase CLI first with `firebase login` if needed.
 
 3. **Build for Production**:
    ```bash

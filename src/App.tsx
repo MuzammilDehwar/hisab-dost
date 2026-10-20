@@ -4,8 +4,11 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { AppState, Customer, CustomerTransaction, Expense, Language, Product, Sale, ShopSettings } from './types';
-import { getInitialDemoState, loadAppState, saveAppState } from './services/storage';
+import { getInitialDemoState, loadAppState } from './services/storage';
+import { auth } from './services/firebase';
+import { loadUserAppState, saveUserAppState } from './services/firestoreStorage';
 import { getTodayDateString } from './utils/formatters';
 import { Header } from './components/Header';
 import { Navigation, TabType } from './components/Navigation';
@@ -17,9 +20,13 @@ import { ExpensesView } from './views/ExpensesView';
 import { InventoryView } from './views/InventoryView';
 import { ReportsView } from './views/ReportsView';
 import { SettingsView } from './views/SettingsView';
+import { AuthView } from './views/AuthView';
 
 export default function App() {
-  const [appState, setAppState] = useState<AppState>(() => loadAppState());
+  const [appState, setAppState] = useState<AppState>(() => getInitialDemoState());
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [isCloudStateReady, setIsCloudStateReady] = useState(false);
   const [currentTab, setCurrentTab] = useState<TabType>('dashboard');
 
   // Modal triggers from dashboard quick actions
@@ -28,10 +35,46 @@ export default function App() {
   const [triggerAddCustomer, setTriggerAddCustomer] = useState(false);
   const [selectedCustomerForLedger, setSelectedCustomerForLedger] = useState<Customer | null>(null);
 
-  // Sync state to LocalStorage
+  useEffect(() => onAuthStateChanged(auth, (user) => {
+    setCurrentUser(user);
+    setAuthReady(true);
+    setIsCloudStateReady(false);
+    if (!user) setAppState(getInitialDemoState());
+  }), []);
+
   useEffect(() => {
-    saveAppState(appState);
-  }, [appState]);
+    if (!currentUser) return;
+    let cancelled = false;
+    const hydrate = async () => {
+      try {
+        const cloudState = await loadUserAppState(currentUser.uid);
+        if (cancelled) return;
+        if (cloudState) {
+          setAppState(cloudState);
+        } else {
+          // One-time migration path for ledgers created by the previous
+          // localStorage-only version. New installs simply receive demo data.
+          const initialState = loadAppState();
+          setAppState(initialState);
+          await saveUserAppState(currentUser.uid, initialState);
+        }
+      } catch (error) {
+        console.error('Could not load Firestore state:', error);
+      } finally {
+        if (!cancelled) setIsCloudStateReady(true);
+      }
+    };
+    void hydrate();
+    return () => { cancelled = true; };
+  }, [currentUser]);
+
+  // Sync each authenticated user's state to their private Firestore document.
+  useEffect(() => {
+    if (!currentUser || !isCloudStateReady) return;
+    void saveUserAppState(currentUser.uid, appState).catch((error) => {
+      console.error('Could not save Firestore state:', error);
+    });
+  }, [appState, currentUser, isCloudStateReady]);
 
   // Update HTML document direction and language when language switches
   useEffect(() => {
@@ -39,6 +82,13 @@ export default function App() {
     document.documentElement.dir = isUrdu ? 'rtl' : 'ltr';
     document.documentElement.lang = isUrdu ? 'ur' : 'en';
   }, [appState.settings.language]);
+
+  if (!authReady) {
+    return <div className="auth-shell"><p className="auth-footer">Connecting securely…</p></div>;
+  }
+  if (!currentUser) {
+    return <AuthView onAuthenticated={() => undefined} />;
+  }
 
   // Handler: Add Sale
   const handleAddSale = (saleData: Omit<Sale, 'id' | 'createdAt'>) => {
@@ -465,6 +515,7 @@ export default function App() {
         settings={appState.settings}
         onLanguageChange={(lang) => handleUpdateSettings({ ...appState.settings, language: lang })}
         onOpenSettings={() => setCurrentTab('settings')}
+        onLogout={() => { void signOut(auth); }}
       />
 
       {/* Main Tab Bar Navigation */}

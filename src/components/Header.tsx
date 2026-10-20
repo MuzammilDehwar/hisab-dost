@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Languages, ShieldCheck } from 'lucide-react';
+import { BookOpen, Languages, LogOut, ShieldCheck } from 'lucide-react';
 import { Language, ShopSettings } from '../types';
 import { getTranslation } from '../utils/translations';
 import { PWAInstallBanner } from './PWAInstallBanner';
@@ -8,9 +8,10 @@ interface Props {
   settings: ShopSettings;
   onLanguageChange: (lang: Language) => void;
   onOpenSettings: () => void;
+  onLogout: () => void;
 }
 
-export const Header: React.FC<Props> = ({ settings, onLanguageChange, onOpenSettings }) => {
+export const Header: React.FC<Props> = ({ settings, onLanguageChange, onOpenSettings, onLogout }) => {
   const t = getTranslation(settings.language);
 
   const cycleLanguage = () => {
@@ -66,6 +67,15 @@ export const Header: React.FC<Props> = ({ settings, onLanguageChange, onOpenSett
           >
             <Languages className="w-3.5 h-3.5 text-amber-300" />
             <span>{languageLabel}</span>
+          </button>
+          <button
+            onClick={onLogout}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-xs font-bold text-white transition border border-emerald-600/60 shadow-xs"
+            title="Logout"
+            aria-label="Logout"
+          >
+            <LogOut className="w-3.5 h-3.5 text-amber-300" />
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </div>
