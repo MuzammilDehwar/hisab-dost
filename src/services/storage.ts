@@ -3,6 +3,24 @@ import { getTodayDateString } from '../utils/formatters';
 
 const STORAGE_KEY = 'hisabdost_app_state_v1';
 
+export function getEmptyAppState(language: ShopSettings['language'] = 'ur'): AppState {
+  return {
+    sales: [],
+    expenses: [],
+    customers: [],
+    customerTransactions: [],
+    products: [],
+    settings: {
+      shopName: 'میری دکان',
+      ownerName: '',
+      phone: '',
+      city: '',
+      currencySymbol: '₨',
+      language,
+    },
+  };
+}
+
 export function getInitialDemoState(): AppState {
   const today = getTodayDateString();
   
@@ -88,7 +106,7 @@ export function getInitialDemoState(): AppState {
       urduName: 'لائف بوائے صابن',
       costPrice: 110,
       salePrice: 125,
-      stockQuantity: 3, // Low stock trigger!
+      stockQuantity: 3,
       minStockThreshold: 6,
       unit: 'دانہ / Pcs',
       category: 'صابن و کاسمیٹکس',
@@ -107,7 +125,6 @@ export function getInitialDemoState(): AppState {
       updatedAt: today,
     },
   ];
-
   const initialCustomers: Customer[] = [
     {
       id: 'cust-1',
@@ -154,7 +171,6 @@ export function getInitialDemoState(): AppState {
       updatedAt: today,
     },
   ];
-
   const initialCustomerTransactions: CustomerTransaction[] = [
     {
       id: 'ctx-1',
@@ -197,7 +213,6 @@ export function getInitialDemoState(): AppState {
       createdAt: today,
     },
   ];
-
   const initialSales: Sale[] = [
     {
       id: 'sale-1',
@@ -249,7 +264,6 @@ export function getInitialDemoState(): AppState {
       createdAt: yStr,
     },
   ];
-
   const initialExpenses: Expense[] = [
     {
       id: 'exp-1',
@@ -282,7 +296,6 @@ export function getInitialDemoState(): AppState {
       createdAt: yStr,
     },
   ];
-
   return {
     sales: initialSales,
     expenses: initialExpenses,
@@ -303,7 +316,6 @@ export function loadAppState(): AppState {
     }
     const parsed = JSON.parse(raw) as Partial<AppState>;
     const defaultDemo = getInitialDemoState();
-
     return {
       sales: Array.isArray(parsed.sales) ? parsed.sales : [],
       expenses: Array.isArray(parsed.expenses) ? parsed.expenses : [],
@@ -317,7 +329,6 @@ export function loadAppState(): AppState {
     return getInitialDemoState();
   }
 }
-
 export function saveAppState(state: AppState): boolean {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -327,7 +338,6 @@ export function saveAppState(state: AppState): boolean {
     return false;
   }
 }
-
 export function exportBackupJSON(state: AppState): AppState {
   const dateStr = getTodayDateString();
   const updatedState: AppState = {
@@ -339,7 +349,6 @@ export function exportBackupJSON(state: AppState): AppState {
   };
   // Save updated backup timestamp locally
   saveAppState(updatedState);
-
   const filename = `HisabDost-Backup-${dateStr}.json`;
   const blob = new Blob([JSON.stringify(updatedState, null, 2)], {
     type: 'application/json;charset=utf-8;',
@@ -352,45 +361,25 @@ export function exportBackupJSON(state: AppState): AppState {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
-
   return updatedState;
 }
-
 export function importBackupJSON(file: File): Promise<AppState> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const text = e.target?.result as string;
-        const parsed = JSON.parse(text) as Partial<AppState>;
-        if (!parsed || typeof parsed !== 'object') {
-          throw new Error('Invalid JSON format.');
+        const result = e.target?.result;
+        if (typeof result !== 'string') throw new Error('Invalid file');
+        const parsed = JSON.parse(result) as AppState;
+        if (!parsed.sales || !parsed.expenses || !parsed.customers || !parsed.products || !parsed.settings) {
+          throw new Error('Invalid backup structure');
         }
-
-        const defaultDemo = getInitialDemoState();
-        const sanitized: AppState = {
-          sales: Array.isArray(parsed.sales) ? parsed.sales : [],
-          expenses: Array.isArray(parsed.expenses) ? parsed.expenses : [],
-          customers: Array.isArray(parsed.customers) ? parsed.customers : [],
-          customerTransactions: Array.isArray(parsed.customerTransactions)
-            ? parsed.customerTransactions
-            : [],
-          products: Array.isArray(parsed.products) ? parsed.products : [],
-          settings: {
-            ...defaultDemo.settings,
-            ...(parsed.settings || {}),
-            lastBackupDate: new Date().toISOString(),
-          },
-        };
-
-        saveAppState(sanitized);
-        resolve(sanitized);
+        resolve(parsed);
       } catch (err) {
         reject(err);
       }
     };
-    reader.onerror = () => reject(new Error('Failed to read the backup file.'));
+    reader.onerror = () => reject(new Error('File read failed'));
     reader.readAsText(file);
   });
 }
-

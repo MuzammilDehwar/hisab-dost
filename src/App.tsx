@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { AppState, Customer, CustomerTransaction, Expense, Language, Product, Sale, ShopSettings } from './types';
-import { getInitialDemoState, loadAppState } from './services/storage';
+import { getEmptyAppState, getInitialDemoState } from './services/storage';
 import { auth } from './services/firebase';
 import { loadUserAppState, saveUserAppState } from './services/firestoreStorage';
 import { getTodayDateString } from './utils/formatters';
@@ -23,7 +23,7 @@ import { SettingsView } from './views/SettingsView';
 import { AuthView } from './views/AuthView';
 
 export default function App() {
-  const [appState, setAppState] = useState<AppState>(() => getInitialDemoState());
+  const [appState, setAppState] = useState<AppState>(() => getEmptyAppState());
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [isCloudStateReady, setIsCloudStateReady] = useState(false);
@@ -39,7 +39,7 @@ export default function App() {
     setCurrentUser(user);
     setAuthReady(true);
     setIsCloudStateReady(false);
-    if (!user) setAppState(getInitialDemoState());
+    if (!user) setAppState(getEmptyAppState());
   }), []);
 
   useEffect(() => {
@@ -52,11 +52,11 @@ export default function App() {
         if (cloudState) {
           setAppState(cloudState);
         } else {
-          // One-time migration path for ledgers created by the previous
-          // localStorage-only version. New installs simply receive demo data.
-          const initialState = loadAppState();
-          setAppState(initialState);
-          await saveUserAppState(currentUser.uid, initialState);
+          // Never copy browser-local/demo data into a new account. A new
+          // Firebase UID must always start with a private, empty ledger.
+          const emptyState = getEmptyAppState();
+          setAppState(emptyState);
+          await saveUserAppState(currentUser.uid, emptyState);
         }
       } catch (error) {
         console.error('Could not load Firestore state:', error);
@@ -88,6 +88,9 @@ export default function App() {
   }
   if (!currentUser) {
     return <AuthView onAuthenticated={() => undefined} />;
+  }
+  if (!isCloudStateReady) {
+    return <div className="auth-shell"><p className="auth-footer">Loading your private ledger…</p></div>;
   }
 
   // Handler: Add Sale
