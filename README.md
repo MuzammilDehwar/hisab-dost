@@ -152,3 +152,17 @@ VITE_DEV_AUTH_BYPASS=true npm run dev -- --port=3001
 ```
 
 The data passphrase is separate from Firebase login, stays in memory, and is never sent to Firebase or B2. Forgotten passphrases cannot decrypt the ledger.
+
+## Automatic Firebase Deployment from GitHub Actions
+
+The workflow `.github/workflows/deploy-firebase.yml` runs on every push to `main` and deploys Hosting, Cloud Functions, and Firestore rules.
+
+Before the first run, add a GitHub Actions repository secret named `FIREBASE_SERVICE_ACCOUNT`:
+
+1. Firebase Console → Project settings → Service accounts.
+2. Click **Generate new private key** and download the JSON file.
+3. GitHub repository → Settings → Secrets and variables → Actions → New repository secret.
+4. Name: `FIREBASE_SERVICE_ACCOUNT`.
+5. Paste the complete JSON file as the secret value. Never commit it or paste it in chat.
+
+The workflow keeps the B2 credentials in Firebase Secret Manager; they are not copied into GitHub Actions. After the secret is added, push to `main` or run **Actions → Deploy Hisab Dost to Firebase → Run workflow**.
