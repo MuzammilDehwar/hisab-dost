@@ -87,6 +87,38 @@ export const DashboardView: React.FC<Props> = ({
 
   return (
     <div className="space-y-4 pb-20 sm:pb-8 animate-fade-in">
+      {sales.length === 0 && expenses.length === 0 && customers.length === 0 && products.length === 0 && (
+        <section className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 p-4 shadow-xs sm:p-5">
+          <div className="flex items-start gap-3">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-700 text-lg font-black text-white">1</div>
+            <div>
+              <h2 className="text-base font-black text-slate-900">
+                {language === 'ur' ? 'خوش آمدید! آج سے اپنا حساب شروع کریں' : 'Welcome! Start your shop ledger today'}
+              </h2>
+              <p className="mt-1 text-xs leading-5 text-slate-600">
+                {language === 'ur'
+                  ? 'پہلے اپنی دکان کی معلومات سیٹنگز میں بھریں، پھر گاہک، مال یا پہلی فروخت شامل کریں۔'
+                  : 'Add your shop details, then record a customer, product, or your first sale.'}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <button type="button" onClick={() => onNavigateTab('settings')} className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-start text-xs font-bold text-slate-800 shadow-xs transition hover:border-emerald-300 hover:bg-emerald-50">
+              <span className="block text-emerald-700">01</span>
+              {language === 'ur' ? 'دکان کی معلومات بھریں' : 'Set up shop profile'}
+            </button>
+            <button type="button" onClick={onOpenNewCustomer} className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-start text-xs font-bold text-slate-800 shadow-xs transition hover:border-emerald-300 hover:bg-emerald-50">
+              <span className="block text-emerald-700">02</span>
+              {language === 'ur' ? 'پہلا گاہک شامل کریں' : 'Add your first customer'}
+            </button>
+            <button type="button" onClick={onOpenAddSale} className="rounded-xl border border-slate-200 bg-white px-3 py-3 text-start text-xs font-bold text-slate-800 shadow-xs transition hover:border-emerald-300 hover:bg-emerald-50">
+              <span className="block text-emerald-700">03</span>
+              {language === 'ur' ? 'پہلی فروخت درج کریں' : 'Record your first sale'}
+            </button>
+          </div>
+        </section>
+      )}
+
       {/* Welcome / Counter Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
