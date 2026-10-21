@@ -1,6 +1,7 @@
 import { get, ref, serverTimestamp, set } from 'firebase/database';
 import { AppState } from '../types';
 import { realtimeDb } from './firebase';
+import { getEmptyAppState } from './storage';
 
 const cloudStateRef = (uid: string) => ref(realtimeDb, `users/${uid}/app/state`);
 const localStateKey = (uid: string) => `hisab-dost-local-state:${uid}`;
@@ -17,10 +18,32 @@ function removeUndefined<T>(value: T): T {
   return value;
 }
 
+// Older app versions and backup files may contain missing fields or a { state: ... } wrapper.
+// Always return a complete AppState so a malformed record cannot produce a blank screen.
+function normalizeAppState(value: unknown): AppState {
+  const empty = getEmptyAppState();
+  if (!value || typeof value !== 'object') return empty;
+  const raw = value as Record<string, unknown>;
+  const source = raw.state && typeof raw.state === 'object'
+    ? raw.state as Record<string, unknown>
+    : raw;
+  const settings = source.settings && typeof source.settings === 'object'
+    ? source.settings as Partial<AppState['settings']>
+    : {};
+  return {
+    sales: Array.isArray(source.sales) ? source.sales as AppState['sales'] : [],
+    expenses: Array.isArray(source.expenses) ? source.expenses as AppState['expenses'] : [],
+    customers: Array.isArray(source.customers) ? source.customers as AppState['customers'] : [],
+    customerTransactions: Array.isArray(source.customerTransactions) ? source.customerTransactions as AppState['customerTransactions'] : [],
+    products: Array.isArray(source.products) ? source.products as AppState['products'] : [],
+    settings: { ...empty.settings, ...settings },
+  };
+}
+
 function readLocalState(uid: string): AppState | null {
   try {
     const raw = window.localStorage.getItem(localStateKey(uid));
-    return raw ? JSON.parse(raw) as AppState : null;
+    return raw ? normalizeAppState(JSON.parse(raw)) : null;
   } catch {
     return null;
   }
@@ -46,7 +69,7 @@ export async function loadUserAppState(uid: string): Promise<AppState | null> {
   try {
     const snapshot = await get(cloudStateRef(uid));
     if (snapshot.exists()) {
-      const cloudState = snapshot.val() as AppState;
+      const cloudState = normalizeAppState(snapshot.val());
       writeLocalState(uid, cloudState);
       return cloudState;
     }
