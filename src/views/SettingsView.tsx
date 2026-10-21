@@ -3,6 +3,8 @@ import {
   Settings as SettingsIcon,
   Download,
   Upload,
+  CloudUpload,
+  CloudDownload,
   RefreshCw,
   Trash2,
   ShieldCheck,
@@ -25,6 +27,8 @@ interface Props {
   onRestoreState: (newState: AppState) => void;
   onLoadDemoData: () => void;
   onClearAllData: () => void;
+  onCloudBackup?: () => Promise<void>;
+  onCloudRestore?: () => Promise<void>;
 }
 
 export const SettingsView: React.FC<Props> = ({
@@ -33,6 +37,8 @@ export const SettingsView: React.FC<Props> = ({
   onRestoreState,
   onLoadDemoData,
   onClearAllData,
+  onCloudBackup,
+  onCloudRestore,
 }) => {
   const { settings } = state;
   const t = getTranslation(settings.language);
@@ -44,6 +50,7 @@ export const SettingsView: React.FC<Props> = ({
   const [city, setCity] = useState(settings.city);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
+  const [cloudBusy, setCloudBusy] = useState(false);
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -302,6 +309,17 @@ export const SettingsView: React.FC<Props> = ({
           </div>
         </div>
 
+        {(onCloudBackup && onCloudRestore) && <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <button type="button" disabled={cloudBusy} onClick={async () => { setCloudBusy(true); try { await onCloudBackup(); setRestoreMessage(language === 'ur' ? 'Encrypted cloud backup محفوظ ہو گیا!' : 'Encrypted cloud backup uploaded!'); } catch { setRestoreMessage(language === 'ur' ? 'Cloud backup ناکام ہو گیا۔' : 'Cloud backup failed.'); } finally { setCloudBusy(false); } }} className="flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-xs font-bold text-indigo-800 transition hover:bg-indigo-100 disabled:opacity-50">
+            <CloudUpload className="h-4 w-4" />
+            <span>{cloudBusy ? 'Working…' : (language === 'ur' ? 'Encrypted Cloud Backup' : 'Encrypted Cloud Backup')}</span>
+          </button>
+          <button type="button" disabled={cloudBusy} onClick={async () => { setCloudBusy(true); try { await onCloudRestore(); setRestoreMessage(language === 'ur' ? 'Encrypted cloud backup restore ہو گیا!' : 'Encrypted cloud backup restored!'); } catch { setRestoreMessage(language === 'ur' ? 'Cloud restore ناکام ہو گیا۔' : 'Cloud restore failed.'); } finally { setCloudBusy(false); } }} className="flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white p-3 text-xs font-bold text-indigo-800 transition hover:bg-indigo-50 disabled:opacity-50">
+            <CloudDownload className="h-4 w-4" />
+            <span>{language === 'ur' ? 'Encrypted Cloud Restore' : 'Encrypted Cloud Restore'}</span>
+          </button>
+        </div>}
+
         {/* Demo Data & Fresh Start */}
         <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
           <button
@@ -353,8 +371,8 @@ export const SettingsView: React.FC<Props> = ({
             </p>
             <div className="mt-2 text-[11px] text-amber-200 bg-emerald-900/60 p-2 rounded-lg font-medium">
               ⚠️ {language === 'ur'
-                ? 'اہم حفاظتی نوٹ: آپ کا ڈیٹا آپ کے Firebase اکاؤنٹ کے محفوظ Firestore ریکارڈ میں محفوظ ہوتا ہے اور صرف آپ کا authenticated UID اسے پڑھ سکتا ہے۔ اپنے اکاؤنٹ کا پاس ورڈ کسی کے ساتھ شیئر نہ کریں۔'
-                : 'Security Note: Data is stored in your authenticated Firebase Firestore account. Firestore rules allow access only to your own user ID; never share your password.'}
+                ? 'اہم نوٹ: عام صارف صرف اپنے UID کا ریکارڈ پڑھ سکتا ہے۔ ریکارڈ AES-GCM سے client-side encrypt ہو کر Firebase اور B2 پر جاتا ہے، اس لیے Firebase admin کو plaintext نہیں ملتا۔ اپنی data passphrase محفوظ رکھیں؛ بھولنے پر encrypted data recover نہیں ہو سکے گا۔'
+                : 'Security Note: Other users can access only their own UID path. Records are AES-GCM encrypted in the client before Firebase/B2 upload, so Firebase admins receive ciphertext only. Keep your data passphrase safe; forgotten passphrases cannot recover the encrypted ledger.'}
             </div>
             <div className="mt-2 text-[11px] text-emerald-300 font-medium">
               ✓ Firebase Auth &nbsp;•&nbsp; ✓ UID-scoped Firestore &nbsp;•&nbsp; ✓ No analytics tracking
