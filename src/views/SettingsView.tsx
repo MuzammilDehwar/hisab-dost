@@ -366,8 +366,8 @@ export const SettingsView: React.FC<Props> = ({
             </h3>
             <p className="text-xs text-emerald-100/90 leading-relaxed mt-1">
               {language === 'ur'
-                ? 'آپ کے کاروباری ریکارڈ authenticated Firebase اکاؤنٹ کے ساتھ محفوظ Firestore میں محفوظ رہتے ہیں۔'
-                : 'Your business records are stored in Firestore under your authenticated Firebase account.'}
+                ? 'آپ کے کاروباری ریکارڈ آپ کے authenticated Firebase اکاؤنٹ کے UID کے تحت Realtime Database میں محفوظ رہتے ہیں۔'
+                : 'Your business records are stored in Realtime Database under your authenticated Firebase account UID.'}
             </p>
             <div className="mt-2 text-[11px] text-amber-200 bg-emerald-900/60 p-2 rounded-lg font-medium">
               ⚠️ {language === 'ur'
@@ -375,7 +375,7 @@ export const SettingsView: React.FC<Props> = ({
                 : 'Security Note: Firebase rules isolate accounts. If the cloud database is unavailable, your ledger is saved locally on this device so the free version keeps working.'}
             </div>
             <div className="mt-2 text-[11px] text-emerald-300 font-medium">
-              ✓ Firebase Auth &nbsp;•&nbsp; ✓ UID-scoped Firestore &nbsp;•&nbsp; ✓ No analytics tracking
+              ✓ Firebase Auth &nbsp;•&nbsp; ✓ UID-scoped Realtime Database &nbsp;•&nbsp; ✓ No analytics tracking
             </div>
           </div>
         </div>

@@ -8,7 +8,7 @@ import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { AppState, Customer, CustomerTransaction, Expense, Language, Product, Sale, ShopSettings } from './types';
 import { getEmptyAppState, getInitialDemoState } from './services/storage';
 import { auth } from './services/firebase';
-import { getFirebaseErrorMessage, loadUserAppState, saveUserAppState } from './services/firestoreStorage';
+import { getFirebaseErrorMessage, loadUserAppState, saveUserAppState } from './services/rtdbStorage';
 import { getTodayDateString } from './utils/formatters';
 import { Header } from './components/Header';
 import { Navigation, TabType } from './components/Navigation';
@@ -86,7 +86,7 @@ export default function App() {
         succeeded = true;
         setCloudError(null);
       } catch (error) {
-        console.error('Could not load Firestore state:', error);
+        console.error('Could not load Realtime Database state:', error);
         if (!cancelled) setCloudError(getFirebaseErrorMessage(error, 'load'));
       } finally {
         if (!cancelled) setIsCloudStateReady(succeeded);
@@ -96,7 +96,7 @@ export default function App() {
     return () => { cancelled = true; };
   }, [currentUser, hydrationAttempt]);
 
-  // Sync each authenticated user's state to their private Firestore document.
+  // Sync each authenticated user's state to their private Realtime Database path.
   useEffect(() => {
     if (DEV_PREVIEW_BYPASS || !currentUser || !isCloudStateReady) return;
     setSaveStatus('saving');
@@ -108,7 +108,7 @@ export default function App() {
         .then(() => saveUserAppState(uid, snapshot))
         .then(() => { setSaveError(null); setSaveStatus('saved'); })
         .catch((error) => {
-          console.error('Could not save Firestore state:', error);
+          console.error('Could not save Realtime Database state:', error);
           setSaveError(getFirebaseErrorMessage(error, 'save'));
           setSaveStatus('saved');
         });

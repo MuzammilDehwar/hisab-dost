@@ -40,7 +40,7 @@ The app is free, lightweight, privacy-first, and provides complete localization 
 
 6. **Privacy-First & Offline-Ready PWA**:
    - **Firebase Authentication**: Email/password signup, login, logout, password reset, and optional Google/Facebook provider flows.
-   - **Private Cloud Data**: Each signed-in user's records are stored in their own Firestore document and protected by UID-based security rules.
+   - **Private Cloud Data**: Each signed-in user's records are stored under their own Realtime Database UID path and protected by UID-based security rules.
    - **JSON Backup & Restore**: Shopkeepers can download a `.json` backup file of their entire ledger to their phone or computer at any time, and restore it on any device.
    - **Installable PWA**: Works offline through service worker caching (`vite-plugin-pwa`). Includes custom in-app install buttons for Android/Chrome and guided step-by-step instructions for iOS Safari.
 
@@ -49,11 +49,11 @@ The app is free, lightweight, privacy-first, and provides complete localization 
 ## 🔒 Data Storage & Privacy Architecture
 
 - **Where is data stored?**
-  The app tries to store all records (`sales`, `expenses`, `customers`, `customerTransactions`, `products`, `settings`) under `users/{uid}/app/state` in Cloud Firestore. If Firestore is unavailable or not enabled, the app automatically uses a UID-scoped `localStorage` backup so the free version continues working on the same device.
+  The app stores all records (`sales`, `expenses`, `customers`, `customerTransactions`, `products`, `settings`) under `users/{uid}/app/state` in Firebase Realtime Database. If the cloud database is unavailable, the app automatically uses a UID-scoped `localStorage` backup so the free version continues working on the same device.
 - **Limitations**:
   The Settings screen still provides an explicit **Download Backup (.json)** button for offline safekeeping and migration.
 - **Privacy Assurance**:
-  Firestore rules deny all anonymous access and allow each user to read/write only their own UID path. Data is protected from other app users by Firebase Authentication and UID-based rules. No advertising tracker or Facebook Pixel is integrated.
+  Realtime Database rules deny anonymous access and allow each user to read/write only their own UID path. Data is protected from other app users by Firebase Authentication and UID-based rules. No advertising tracker or Facebook Pixel is integrated.
 - **Rules file**: `firestore.rules` contains the deny-by-default rules and should be deployed with the Firebase CLI or Firebase Console.
 - **Future Advertising Integration Point**:
   The application is completely ad-free. A dedicated placeholder and documentation block are reserved in `src/views/SettingsView.tsx` (`FUTURE_AD_SLOT_RESERVED`) for future non-intrusive, privacy-respecting advertising if needed.

@@ -42,14 +42,14 @@ jobs:
           test -n "$FIREBASE_SERVICE_ACCOUNT"
           printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-service-account.json"
 
-      - name: Deploy Firebase Hosting only
+      - name: Deploy Firebase Hosting and Realtime Database rules
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-service-account.json
         run: |
           npx --yes firebase-tools@latest deploy \
             --non-interactive \
             --project hisab-dost-313 \
-            --only hosting
+            --only hosting,database
 
       - name: Remove service account file
         if: always()

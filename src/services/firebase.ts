@@ -1,12 +1,13 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getDatabase } from 'firebase/database';
 
 // Firebase Web config is safe to ship in a browser bundle. Security comes from
-// Authentication and Firestore Rules, not from hiding these values.
+// Authentication and Realtime Database Rules, not from hiding these values.
 const firebaseConfig = {
   apiKey: 'AIzaSyASB8tv7E7jCn3PKnHu64_B2g8My9TouBU',
   authDomain: 'hisab-dost-313.firebaseapp.com',
+  databaseURL: 'https://hisab-dost-313-default-rtdb.firebaseio.com',
   projectId: 'hisab-dost-313',
   storageBucket: 'hisab-dost-313.firebasestorage.app',
   messagingSenderId: '731329583552',
@@ -16,4 +17,4 @@ const firebaseConfig = {
 
 export const firebaseApp = initializeApp(firebaseConfig);
 export const auth = getAuth(firebaseApp);
-export const db = getFirestore(firebaseApp);
+export const realtimeDb = getDatabase(firebaseApp);
