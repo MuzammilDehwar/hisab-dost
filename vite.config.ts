@@ -5,7 +5,7 @@ import {defineConfig} from 'vite';
 import {VitePWA} from 'vite-plugin-pwa';
 
 export default defineConfig(() => {
-  const base = process.env.GITHUB_ACTIONS === 'true' ? '/hisab-dost/' : '/';
+  const base = process.env.VITE_GITHUB_PAGES === 'true' ? '/hisab-dost/' : '/';
   return {
     base,
     plugins: [
