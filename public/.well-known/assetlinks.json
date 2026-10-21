@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.hisabdost.app",
+      "sha256_cert_fingerprints": [
+        "DD:3A:AE:2D:2A:1D:97:34:C6:E3:9E:4B:4C:A2:B2:58:48:54:84:79:EE:BF:AC:21:96:C6:29:25:D1:C2:42:33"
+      ]
+    }
+  }
+]

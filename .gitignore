@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+android-twa/android.keystore
+android-twa/.signing-password
+android-twa/keystore.properties
