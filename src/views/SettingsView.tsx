@@ -371,8 +371,8 @@ export const SettingsView: React.FC<Props> = ({
             </p>
             <div className="mt-2 text-[11px] text-amber-200 bg-emerald-900/60 p-2 rounded-lg font-medium">
               ⚠️ {language === 'ur'
-                ? 'اہم نوٹ: ہر صارف صرف اپنے UID کا ریکارڈ پڑھ سکتا ہے۔ Firebase Authentication اور Firestore security rules آپ کے اکاؤنٹ کے ڈیٹا کو دوسرے صارفین سے الگ رکھتے ہیں۔'
-                : 'Security Note: Firebase Authentication and Firestore security rules isolate each account to its own UID path. Other signed-in users cannot access your ledger.'}
+                ? 'اہم نوٹ: ہر صارف صرف اپنے UID کا ریکارڈ پڑھ سکتا ہے۔ Firebase دستیاب نہ ہو تو ڈیٹا اسی ڈیوائس پر محفوظ رہتا ہے۔'
+                : 'Security Note: Firebase rules isolate accounts. If the cloud database is unavailable, your ledger is saved locally on this device so the free version keeps working.'}
             </div>
             <div className="mt-2 text-[11px] text-emerald-300 font-medium">
               ✓ Firebase Auth &nbsp;•&nbsp; ✓ UID-scoped Firestore &nbsp;•&nbsp; ✓ No analytics tracking

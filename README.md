@@ -49,7 +49,7 @@ The app is free, lightweight, privacy-first, and provides complete localization 
 ## 🔒 Data Storage & Privacy Architecture
 
 - **Where is data stored?**
-  All records (`sales`, `expenses`, `customers`, `customerTransactions`, `products`, `settings`) are stored under `users/{uid}/app/state` in Cloud Firestore after authentication.
+  The app tries to store all records (`sales`, `expenses`, `customers`, `customerTransactions`, `products`, `settings`) under `users/{uid}/app/state` in Cloud Firestore. If Firestore is unavailable or not enabled, the app automatically uses a UID-scoped `localStorage` backup so the free version continues working on the same device.
 - **Limitations**:
   The Settings screen still provides an explicit **Download Backup (.json)** button for offline safekeeping and migration.
 - **Privacy Assurance**:
