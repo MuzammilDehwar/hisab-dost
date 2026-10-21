@@ -21,8 +21,7 @@ import { InventoryView } from './views/InventoryView';
 import { ReportsView } from './views/ReportsView';
 import { SettingsView } from './views/SettingsView';
 import { AuthView } from './views/AuthView';
-import { EncryptionGate } from './components/EncryptionGate';
-import { restoreEncryptedBackup, uploadEncryptedBackup } from './services/b2Backup';
+import { restoreBackup, uploadBackup } from './services/b2Backup';
 
 const DEV_PREVIEW_BYPASS = import.meta.env.DEV && import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
 
@@ -35,8 +34,6 @@ export default function App() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
   const [hydrationAttempt, setHydrationAttempt] = useState(0);
-  const [encryptionPassphrase, setEncryptionPassphrase] = useState('');
-  const [encryptionReady, setEncryptionReady] = useState(false);
   const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
   const [currentTab, setCurrentTab] = useState<TabType>('dashboard');
 
@@ -50,8 +47,6 @@ export default function App() {
     if (DEV_PREVIEW_BYPASS) {
       setCurrentUser({ uid: 'dev-preview-user', email: 'preview@local.test' } as User);
       setAuthReady(true);
-      setEncryptionPassphrase('dev-preview-passphrase');
-      setEncryptionReady(true);
       return;
     }
     setCurrentUser(user);
@@ -60,13 +55,11 @@ export default function App() {
     setCloudError(null);
     setSaveError(null);
     setSaveStatus('saved');
-    setEncryptionPassphrase('');
-    setEncryptionReady(false);
     if (!user) setAppState(getEmptyAppState());
   }), []);
 
   useEffect(() => {
-    if (!currentUser || !encryptionReady) return;
+    if (!currentUser) return;
     let cancelled = false;
     const hydrate = async () => {
       let succeeded = false;
@@ -77,7 +70,7 @@ export default function App() {
           return;
         }
         const cloudState = await Promise.race([
-          loadUserAppState(currentUser.uid, encryptionPassphrase),
+          loadUserAppState(currentUser.uid),
           new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Firebase request timeout')), 15000)),
         ]);
         if (cancelled) return;
@@ -88,7 +81,7 @@ export default function App() {
           // Firebase UID must always start with a private, empty ledger.
           const emptyState = getEmptyAppState();
           setAppState(emptyState);
-          await saveUserAppState(currentUser.uid, emptyState, encryptionPassphrase);
+          await saveUserAppState(currentUser.uid, emptyState);
         }
         succeeded = true;
         setCloudError(null);
@@ -101,18 +94,18 @@ export default function App() {
     };
     void hydrate();
     return () => { cancelled = true; };
-  }, [currentUser, encryptionReady, encryptionPassphrase, hydrationAttempt]);
+  }, [currentUser, hydrationAttempt]);
 
   // Sync each authenticated user's state to their private Firestore document.
   useEffect(() => {
-    if (DEV_PREVIEW_BYPASS || !currentUser || !encryptionReady || !isCloudStateReady) return;
+    if (DEV_PREVIEW_BYPASS || !currentUser || !isCloudStateReady) return;
     setSaveStatus('saving');
     const timeoutId = window.setTimeout(() => {
       const uid = currentUser.uid;
       const snapshot = appState;
       saveQueueRef.current = saveQueueRef.current
         .catch(() => undefined)
-        .then(() => saveUserAppState(uid, snapshot, encryptionPassphrase))
+        .then(() => saveUserAppState(uid, snapshot))
         .then(() => { setSaveError(null); setSaveStatus('saved'); })
         .catch((error) => {
           console.error('Could not save Firestore state:', error);
@@ -121,7 +114,7 @@ export default function App() {
         });
     }, 350);
     return () => window.clearTimeout(timeoutId);
-  }, [appState, currentUser, encryptionPassphrase, encryptionReady, isCloudStateReady]);
+  }, [appState, currentUser, isCloudStateReady]);
 
   // Update HTML document direction and language when language switches
   useEffect(() => {
@@ -136,9 +129,6 @@ export default function App() {
   if (!currentUser) {
     return <AuthView onAuthenticated={() => undefined} />;
   }
-  if (!encryptionReady) {
-    return <EncryptionGate error={cloudError} onUnlock={(passphrase) => { setCloudError(null); setEncryptionPassphrase(passphrase); setEncryptionReady(true); }} />;
-  }
   if (cloudError) {
     return (
       <div className="auth-shell">
@@ -147,7 +137,7 @@ export default function App() {
           <p className="auth-subtitle">{cloudError}</p>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <button className="auth-primary" type="button" onClick={() => { setCloudError(null); setIsCloudStateReady(false); setHydrationAttempt((value) => value + 1); }}>Retry</button>
-            <button className="rounded-xl border border-white/50 bg-white/80 px-3 py-2 text-xs font-bold text-slate-700" type="button" onClick={() => { setCloudError(null); setEncryptionPassphrase(''); setEncryptionReady(false); }}>Enter again</button>
+            <button className="rounded-xl border border-white/50 bg-white/80 px-3 py-2 text-xs font-bold text-slate-700" type="button" onClick={() => { setCloudError(null); setIsCloudStateReady(false); setHydrationAttempt((value) => value + 1); }}>Try again</button>
           </div>
         </section>
       </div>
@@ -542,11 +532,11 @@ export default function App() {
   };
 
   const handleCloudBackup = async () => {
-    await uploadEncryptedBackup(appState, encryptionPassphrase);
+    await uploadBackup(appState);
   };
 
   const handleCloudRestore = async () => {
-    const restored = await restoreEncryptedBackup(encryptionPassphrase);
+    const restored = await restoreBackup();
     setAppState(restored);
   };
 

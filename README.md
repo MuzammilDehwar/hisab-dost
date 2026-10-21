@@ -53,7 +53,7 @@ The app is free, lightweight, privacy-first, and provides complete localization 
 - **Limitations**:
   The Settings screen still provides an explicit **Download Backup (.json)** button for offline safekeeping and migration.
 - **Privacy Assurance**:
-  Firestore rules deny all anonymous access and allow each user to read/write only their own UID path. Ledger state is now AES-GCM encrypted in the browser before Firestore/B2 upload, so Firebase admins receive ciphertext only. No advertising tracker or Facebook Pixel is integrated. The separate data passphrase is never stored and cannot be recovered if forgotten.
+  Firestore rules deny all anonymous access and allow each user to read/write only their own UID path. Data is protected from other app users by Firebase Authentication and UID-based rules. No advertising tracker or Facebook Pixel is integrated.
 - **Rules file**: `firestore.rules` contains the deny-by-default rules and should be deployed with the Firebase CLI or Firebase Console.
 - **Future Advertising Integration Point**:
   The application is completely ad-free. A dedicated placeholder and documentation block are reserved in `src/views/SettingsView.tsx` (`FUTURE_AD_SLOT_RESERVED`) for future non-intrusive, privacy-respecting advertising if needed.
@@ -118,9 +118,9 @@ The app is free, lightweight, privacy-first, and provides complete localization 
 - [x] **Backup & Restore**: Generates valid JSON export files and verifies imports safely.
 
 
-## Encrypted Backblaze B2 Backup
+## Backblaze B2 Backup
 
-The browser encrypts the ledger with AES-GCM before Firestore or B2 upload. The Firebase callable functions in `functions/src/index.ts` authenticate the Firebase user and store only encrypted ciphertext in `users/{uid}/backups/latest.json`.
+The Firebase callable functions in `functions/src/index.ts` authenticate the Firebase user and store the user's backup in `users/{uid}/backups/latest.json`. This optional backup requires a deployed Functions backend.
 
 Set B2 credentials only in Firebase Secret Manager:
 
@@ -151,7 +151,8 @@ For local dashboard UI testing only, use the dev-only bypass. It is guarded by `
 VITE_DEV_AUTH_BYPASS=true npm run dev -- --port=3001
 ```
 
-The data passphrase is separate from Firebase login, stays in memory, and is never sent to Firebase or B2. Forgotten passphrases cannot decrypt the ledger.
+
+The app uses the Firebase login directly and does not show a separate private-data unlock screen.
 
 ## Automatic Firebase Deployment from GitHub Actions
 
