@@ -53,7 +53,7 @@ The app is free, lightweight, privacy-first, and provides complete localization 
 - **Limitations**:
   The Settings screen still provides an explicit **Download Backup (.json)** button for offline safekeeping and migration.
 - **Privacy Assurance**:
-  Firestore rules deny all anonymous access and allow each user to read/write only their own UID path. No advertising tracker or Facebook Pixel is integrated.
+  Firestore rules deny all anonymous access and allow each user to read/write only their own UID path. Ledger state is now AES-GCM encrypted in the browser before Firestore/B2 upload, so Firebase admins receive ciphertext only. No advertising tracker or Facebook Pixel is integrated. The separate data passphrase is never stored and cannot be recovered if forgotten.
 - **Rules file**: `firestore.rules` contains the deny-by-default rules and should be deployed with the Firebase CLI or Firebase Console.
 - **Future Advertising Integration Point**:
   The application is completely ad-free. A dedicated placeholder and documentation block are reserved in `src/views/SettingsView.tsx` (`FUTURE_AD_SLOT_RESERVED`) for future non-intrusive, privacy-respecting advertising if needed.
@@ -116,3 +116,39 @@ The app is free, lightweight, privacy-first, and provides complete localization 
 - [x] **PWA Installability**: Web App Manifest configured with `192x192`, `512x512`, and maskable icons.
 - [x] **Offline Status**: Displays clear offline status indicator when internet is disconnected without interrupting counter sales.
 - [x] **Backup & Restore**: Generates valid JSON export files and verifies imports safely.
+
+
+## Encrypted Backblaze B2 Backup
+
+The browser encrypts the ledger with AES-GCM before Firestore or B2 upload. The Firebase callable functions in `functions/src/index.ts` authenticate the Firebase user and store only encrypted ciphertext in `users/{uid}/backups/latest.json`.
+
+Set B2 credentials only in Firebase Secret Manager:
+
+```bash
+firebase functions:secrets:set B2_CONFIG --format=json
+```
+
+Use this JSON when prompted, replacing the placeholders with a bucket-restricted key:
+
+```json
+{
+  "endpoint": "https://s3.us-east-005.backblazeb2.com",
+  "bucket": "Hisab-dost",
+  "accessKeyId": "<restricted-key-id>",
+  "secretAccessKey": "<restricted-key-secret>"
+}
+```
+
+Deploy functions and rules with:
+
+```bash
+firebase deploy --only functions,firestore:rules --project hisab-dost-313
+```
+
+For local dashboard UI testing only, use the dev-only bypass. It is guarded by `import.meta.env.DEV` and is disabled in production builds:
+
+```bash
+VITE_DEV_AUTH_BYPASS=true npm run dev -- --port=3001
+```
+
+The data passphrase is separate from Firebase login, stays in memory, and is never sent to Firebase or B2. Forgotten passphrases cannot decrypt the ledger.
