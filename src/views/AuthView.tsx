@@ -1,5 +1,5 @@
 import React, { FormEvent, useState } from 'react';
-import { ArrowRight, Check, Eye, EyeOff, Facebook, LockKeyhole, Mail, UserRound } from 'lucide-react';
+import { ArrowRight, Check, Eye, EyeOff, Facebook, LockKeyhole, Mail, ShieldCheck, UserRound } from 'lucide-react';
 import {
   createUserWithEmailAndPassword,
   FacebookAuthProvider,
@@ -119,16 +119,31 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthenticated }) => {
     <div className="auth-shell" dir="ltr">
       <div className="auth-glow auth-glow-one" />
       <div className="auth-glow auth-glow-two" />
-      <div className="auth-brand-mark" aria-hidden="true">H</div>
-      <div className="auth-heading">
-        <span className="auth-kicker">HISAB DOST</span>
-        <h1>Manage your business with confidence</h1>
-        <p>Simple, smart hisaab-kitab for Pakistan’s small businesses.</p>
-      </div>
+      <main className="auth-layout">
+        <section className="auth-hero" aria-label="Hisab Dost introduction">
+          <div className="auth-brand-row">
+            <img className="auth-brand-logo" src="/pwa-512x512.png" alt="Hisab Dost" />
+            <div>
+              <span className="auth-kicker">HISAB DOST</span>
+              <span className="auth-brand-caption">Smart shop ledger</span>
+            </div>
+          </div>
+          <div className="auth-heading">
+            <span className="auth-eyebrow">BUILT FOR PAKISTANI SHOPKEEPERS</span>
+            <h1>Apna hisaab,<br /><em>asaani se.</em></h1>
+            <p>Sales, Khata aur roz ka kharcha — sab ek hi jagah, simple aur clear.</p>
+          </div>
+          <div className="auth-feature-grid">
+            <div><strong>Khata</strong><span>Customer balances</span></div>
+            <div><strong>Sales</strong><span>Daily business</span></div>
+            <div><strong>Reports</strong><span>Clear decisions</span></div>
+          </div>
+          <div className="auth-trust"><ShieldCheck size={16} /><span>Your business records stay private to your account.</span></div>
+        </section>
 
       <div className="auth-card-wrap">
         <section className="auth-card" aria-labelledby="auth-title">
-          <div className="auth-icon-bubble"><UserRound size={31} strokeWidth={2.2} /></div>
+          <div className="auth-card-kicker">WELCOME TO HISAB DOST</div>
           <h2 id="auth-title">{mode === 'login' ? 'Welcome Back' : 'Create Account'}</h2>
           <p className="auth-subtitle">{mode === 'login' ? 'Login to continue to Hisab Dost' : 'Start managing your business today'}</p>
 
@@ -170,7 +185,8 @@ export const AuthView: React.FC<AuthViewProps> = ({ onAuthenticated }) => {
           <p className="auth-switch">{mode === 'login' ? 'Not registered yet?' : 'Already have an account?'} <button type="button" className="auth-link" onClick={() => switchMode(mode === 'login' ? 'signup' : 'login')}>{mode === 'login' ? 'Sign Up' : 'Log In'} <ArrowRight size={14} /></button></p>
         </section>
       </div>
-      <p className="auth-footer">Your business data stays private and secure.</p>
+      </main>
+      <p className="auth-footer">Simple hisaab-kitab for a smarter shop.</p>
     </div>
   );
 };
