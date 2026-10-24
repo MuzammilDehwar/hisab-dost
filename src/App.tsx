@@ -21,7 +21,6 @@ import { InventoryView } from './views/InventoryView';
 import { ReportsView } from './views/ReportsView';
 import { SettingsView } from './views/SettingsView';
 import { AuthView } from './views/AuthView';
-import { restoreBackup, uploadBackup } from './services/b2Backup';
 
 const DEV_PREVIEW_BYPASS = import.meta.env.DEV && import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
 
@@ -526,26 +525,6 @@ export default function App() {
     }));
   };
 
-  // Handler: Restore State from JSON file
-  const handleRestoreState = (newState: AppState) => {
-    setAppState(newState);
-  };
-
-  const handleCloudBackup = async () => {
-    await uploadBackup(appState);
-  };
-
-  const handleCloudRestore = async () => {
-    const restored = await restoreBackup();
-    setAppState(restored);
-  };
-
-  // Handler: Load Demo Data
-  const handleLoadDemoData = () => {
-    const demo = getInitialDemoState();
-    setAppState(demo);
-  };
-
   // Handler: Clear All Data
   const handleClearAllData = () => {
     const clean: AppState = {
@@ -708,11 +687,7 @@ export default function App() {
           <SettingsView
             state={appState}
             onUpdateSettings={handleUpdateSettings}
-            onRestoreState={handleRestoreState}
-            onLoadDemoData={handleLoadDemoData}
             onClearAllData={handleClearAllData}
-            onCloudBackup={handleCloudBackup}
-            onCloudRestore={handleCloudRestore}
           />
         )}
       </main>

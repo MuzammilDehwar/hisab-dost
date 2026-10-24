@@ -1,56 +1,34 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Settings as SettingsIcon,
-  Download,
-  Upload,
-  CloudUpload,
-  CloudDownload,
-  RefreshCw,
   Trash2,
   ShieldCheck,
   Store,
   Languages,
   Check,
-  AlertCircle,
-  HelpCircle,
-  Smartphone,
 } from 'lucide-react';
 import { AppState, Language, ShopSettings } from '../types';
-import { exportBackupJSON, importBackupJSON } from '../services/storage';
-import { formatDate } from '../utils/formatters';
 import { getTranslation } from '../utils/translations';
-import { PWAInstallBanner } from '../components/PWAInstallBanner';
 
 interface Props {
   state: AppState;
   onUpdateSettings: (settings: ShopSettings) => void;
-  onRestoreState: (newState: AppState) => void;
-  onLoadDemoData: () => void;
   onClearAllData: () => void;
-  onCloudBackup?: () => Promise<void>;
-  onCloudRestore?: () => Promise<void>;
 }
 
 export const SettingsView: React.FC<Props> = ({
   state,
   onUpdateSettings,
-  onRestoreState,
-  onLoadDemoData,
   onClearAllData,
-  onCloudBackup,
-  onCloudRestore,
 }) => {
   const { settings } = state;
   const t = getTranslation(settings.language);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [shopName, setShopName] = useState(settings.shopName);
   const [ownerName, setOwnerName] = useState(settings.ownerName);
   const [phone, setPhone] = useState(settings.phone);
   const [city, setCity] = useState(settings.city);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
-  const [cloudBusy, setCloudBusy] = useState(false);
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,31 +50,6 @@ export const SettingsView: React.FC<Props> = ({
     });
   };
 
-  const handleDownloadBackup = () => {
-    const updated = exportBackupJSON(state);
-    onRestoreState(updated);
-    setRestoreMessage(t.backupSuccess);
-    setTimeout(() => setRestoreMessage(null), 3000);
-  };
-
-  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const restored = await importBackupJSON(file);
-      onRestoreState(restored);
-      setRestoreMessage(t.restoreSuccess);
-      setTimeout(() => setRestoreMessage(null), 3000);
-    } catch (err: any) {
-      alert(language === 'ur' ? 'فائل درست نہیں ہے!' : 'Invalid backup file format');
-    }
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
   const language = settings.language;
 
   return (
@@ -110,8 +63,8 @@ export const SettingsView: React.FC<Props> = ({
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
             {language === 'ur'
-              ? 'دکان کا نام، زبان اور آف لائن بیک اپ کی ترتیبات'
-              : 'Customize shop details, language, and manage local data backup'}
+              ? 'دکان کی پروفائل اور زبان کی ترتیبات'
+              : 'Customize your shop profile and language'}
           </p>
         </div>
       </div>
@@ -245,113 +198,26 @@ export const SettingsView: React.FC<Props> = ({
         </form>
       </div>
 
-      {/* Backup and Restore Hub */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-        <div>
-          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-            <Download className="w-4 h-4 text-emerald-700" />
-            <span>{t.backupAndRestore}</span>
-          </h3>
-          <p className="text-xs text-slate-500 mt-1">
-            {language === 'ur'
-              ? 'اپنے تمام کھاتے کی بیک اپ فائل محفوظ کریں تاکہ موبائل تبدیل کرنے یا ڈیٹا ضائع ہونے پر فوری بحال کیا جا سکے۔'
-              : 'Save an offline JSON backup of all customer ledgers, sales, and products to restore anytime.'}
-          </p>
-        </div>
-
-        {/* Last Backup Status indicator */}
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between text-xs">
-          <span className="font-semibold text-slate-700">
-            {language === 'ur' ? 'آخری بیک اپ کی تاریخ:' : 'Last Backup Saved:'}
-          </span>
-          <span className="font-numeric font-bold text-emerald-800">
-            {settings.lastBackupDate
-              ? formatDate(settings.lastBackupDate)
-              : language === 'ur'
-              ? 'ابھی تک نہیں لیا گیا'
-              : 'Never taken'}
-          </span>
-        </div>
-
-        {restoreMessage && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-bold flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-600" />
-            <span>{restoreMessage}</span>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Download Backup */}
-          <button
-            onClick={handleDownloadBackup}
-            className="flex items-center justify-center gap-2 p-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition active:scale-98"
-          >
-            <Download className="w-4 h-4" />
-            <span>{t.downloadBackup}</span>
-          </button>
-
-          {/* Restore Backup */}
-          <div>
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept=".json"
-              onChange={handleFileInputChange}
-              className="hidden"
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full flex items-center justify-center gap-2 p-3.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-xs transition active:scale-98"
-            >
-              <Upload className="w-4 h-4 text-emerald-700" />
-              <span>{t.restoreBackup}</span>
-            </button>
-          </div>
-        </div>
-
-        {(onCloudBackup && onCloudRestore) && <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <button type="button" disabled={cloudBusy} onClick={async () => { setCloudBusy(true); try { await onCloudBackup(); setRestoreMessage(language === 'ur' ? 'Encrypted cloud backup محفوظ ہو گیا!' : 'Encrypted cloud backup uploaded!'); } catch { setRestoreMessage(language === 'ur' ? 'Cloud backup ناکام ہو گیا۔' : 'Cloud backup failed.'); } finally { setCloudBusy(false); } }} className="flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-xs font-bold text-indigo-800 transition hover:bg-indigo-100 disabled:opacity-50">
-            <CloudUpload className="h-4 w-4" />
-            <span>{cloudBusy ? 'Working…' : (language === 'ur' ? 'Encrypted Cloud Backup' : 'Encrypted Cloud Backup')}</span>
-          </button>
-          <button type="button" disabled={cloudBusy} onClick={async () => { setCloudBusy(true); try { await onCloudRestore(); setRestoreMessage(language === 'ur' ? 'Encrypted cloud backup restore ہو گیا!' : 'Encrypted cloud backup restored!'); } catch { setRestoreMessage(language === 'ur' ? 'Cloud restore ناکام ہو گیا۔' : 'Cloud restore failed.'); } finally { setCloudBusy(false); } }} className="flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white p-3 text-xs font-bold text-indigo-800 transition hover:bg-indigo-50 disabled:opacity-50">
-            <CloudDownload className="h-4 w-4" />
-            <span>{language === 'ur' ? 'Encrypted Cloud Restore' : 'Encrypted Cloud Restore'}</span>
-          </button>
-        </div>}
-
-        {/* Demo Data & Fresh Start */}
-        <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-          <button
-            onClick={() => {
-              if (
-                window.confirm(
-                  language === 'ur'
-                    ? 'کیا آپ پاکستانی کریانہ اسٹور کا ڈیمو ڈیٹا لوڈ کرنا چاہتے ہیں؟'
-                    : 'Load Pakistani Kiryana demo data?'
-                )
-              ) {
-                onLoadDemoData();
-              }
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>{t.loadDemoData}</span>
-          </button>
-
-          <button
-            onClick={() => {
-              if (window.confirm(t.confirmClearData)) {
-                onClearAllData();
-              }
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:text-rose-800 hover:bg-rose-50"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span>{t.clearAllData}</span>
-          </button>
-        </div>
+      {/* User-owned data control */}
+      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+          {language === 'ur' ? 'آپ کا ڈیٹا' : 'Your data'}
+        </h3>
+        <p className="text-xs text-slate-500 mb-3">
+          {language === 'ur'
+            ? 'یہ کارروائی صرف آپ کے اپنے کاروباری ریکارڈ صاف کرے گی۔'
+            : 'This action only clears your own business records.'}
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm(t.confirmClearData)) onClearAllData();
+          }}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:text-rose-800 hover:bg-rose-50"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+          <span>{t.clearAllData}</span>
+        </button>
       </div>
 
       {/* Privacy Guarantee Card */}
@@ -366,35 +232,13 @@ export const SettingsView: React.FC<Props> = ({
             </h3>
             <p className="text-xs text-emerald-100/90 leading-relaxed mt-1">
               {language === 'ur'
-                ? 'آپ کے کاروباری ریکارڈ آپ کے authenticated Firebase اکاؤنٹ کے UID کے تحت Realtime Database میں محفوظ رہتے ہیں۔'
-                : 'Your business records are stored in Realtime Database under your authenticated Firebase account UID.'}
+                ? 'آپ کے کاروباری ریکارڈ آپ کے اپنے اکاؤنٹ کے ساتھ محفوظ رہتے ہیں اور دوسرے صارف انہیں نہیں دیکھ سکتے۔'
+                : 'Your business records stay linked to your own account and are not shown to other users.'}
             </p>
-            <div className="mt-2 text-[11px] text-amber-200 bg-emerald-900/60 p-2 rounded-lg font-medium">
-              ⚠️ {language === 'ur'
-                ? 'اہم نوٹ: ہر صارف صرف اپنے UID کا ریکارڈ پڑھ سکتا ہے۔ Firebase دستیاب نہ ہو تو ڈیٹا اسی ڈیوائس پر محفوظ رہتا ہے۔'
-                : 'Security Note: Firebase rules isolate accounts. If the cloud database is unavailable, your ledger is saved locally on this device so the free version keeps working.'}
-            </div>
-            <div className="mt-2 text-[11px] text-emerald-300 font-medium">
-              ✓ Firebase Auth &nbsp;•&nbsp; ✓ UID-scoped Realtime Database &nbsp;•&nbsp; ✓ No analytics tracking
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Compliant Future Advertising Integration Point Documentation */}
-      <div className="bg-slate-100 p-4 rounded-2xl border border-slate-200 text-xs text-slate-600 space-y-2">
-        <div className="flex items-center gap-2 text-slate-700 font-bold">
-          <HelpCircle className="w-4 h-4 text-slate-500" />
-          <span>مستقبل میں اشتہارات کی جگہ (Future Advertising Slot)</span>
-        </div>
-        <p className="text-[11px] leading-relaxed">
-          یہ ایپ فی الوقت مکمل طور پر فری اور اشتہارات سے پاک ہے۔ مستقبل میں دکانداروں کی سہولت برقرار رکھتے ہوئے صرف غیر دخل انداز (Non-intrusive) بینر سپورٹ کیا جائے گا جس میں گاہکوں کے ذاتی کھاتے، فون نمبر یا مالی ڈیٹا کی کوئی ٹریکنگ نہیں کی جائے گی۔
-        </p>
-        <div className="p-3 bg-white border border-dashed border-slate-300 rounded-xl text-center text-slate-400 text-[11px]">
-          {/* FUTURE_AD_SLOT_RESERVED: Placeholder for compliant ad network (Google AdSense / Local Commerce Partner) */}
-          <span>[مستقبل کا محفوظ اشتہاری سلاٹ — غیر فعال / No Ads Active in Prototype]</span>
-        </div>
-      </div>
     </div>
   );
 };
