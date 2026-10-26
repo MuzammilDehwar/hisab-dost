@@ -36,6 +36,8 @@ function normalizeAppState(value: unknown): AppState {
     customers: Array.isArray(source.customers) ? source.customers as AppState['customers'] : [],
     customerTransactions: Array.isArray(source.customerTransactions) ? source.customerTransactions as AppState['customerTransactions'] : [],
     products: Array.isArray(source.products) ? source.products as AppState['products'] : [],
+    suppliers: Array.isArray(source.suppliers) ? source.suppliers as AppState['suppliers'] : [],
+    purchases: Array.isArray(source.purchases) ? source.purchases as AppState['purchases'] : [],
     settings: { ...empty.settings, ...settings },
   };
 }

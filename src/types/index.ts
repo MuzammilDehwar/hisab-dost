@@ -84,6 +84,32 @@ export interface Product {
   updatedAt: string;
 }
 
+export interface Supplier {
+  id: string;
+  name: string;
+  phone: string;
+  address?: string;
+  balance: number; // positive = shop owes supplier
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Purchase {
+  id: string;
+  supplierId?: string;
+  supplierName: string;
+  productId?: string;
+  productName: string;
+  quantity: number;
+  unit: string;
+  unitCost: number;
+  total: number;
+  paidAmount: number;
+  date: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface ShopSettings {
   shopName: string;
   ownerName: string;
@@ -100,5 +126,7 @@ export interface AppState {
   customers: Customer[];
   customerTransactions: CustomerTransaction[];
   products: Product[];
+  suppliers: Supplier[];
+  purchases: Purchase[];
   settings: ShopSettings;
 }

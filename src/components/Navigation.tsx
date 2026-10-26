@@ -7,6 +7,7 @@ import {
   Boxes,
   FileBarChart2,
   Settings as SettingsIcon,
+  Truck,
 } from 'lucide-react';
 import { Language } from '../types';
 import { getTranslation } from '../utils/translations';
@@ -17,6 +18,7 @@ export type TabType =
   | 'sales'
   | 'expenses'
   | 'inventory'
+  | 'purchases'
   | 'reports'
   | 'settings';
 
@@ -66,6 +68,11 @@ export const Navigation: React.FC<Props> = ({
       icon: Boxes,
       badge: lowStockCount > 0 ? lowStockCount : undefined,
       badgeColor: 'bg-amber-500 text-white',
+    },
+    {
+      id: 'purchases' as TabType,
+      label: language === 'ur' ? 'خریداری' : 'Purchases',
+      icon: Truck,
     },
     {
       id: 'reports' as TabType,
@@ -129,7 +136,7 @@ export const Navigation: React.FC<Props> = ({
             navItems[1], // Khata
             navItems[2], // Sales
             navItems[4], // Inventory
-            navItems[5], // Reports
+            navItems[6], // Reports
           ].map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;
@@ -163,8 +170,8 @@ export const Navigation: React.FC<Props> = ({
           })}
         </div>
 
-        {/* Secondary quick bar strip for Expenses & Settings on mobile if needed */}
-        <div className="bg-slate-100 border-t border-slate-200/80 px-4 py-1 flex items-center justify-between text-[11px] font-medium text-slate-600">
+        {/* Secondary quick bar strip for supporting registers on mobile */}
+        <div className="bg-slate-100 border-t border-slate-200/80 px-2 py-1 flex items-center justify-between text-[11px] font-medium text-slate-600">
           <button
             onClick={() => onTabChange('expenses')}
             className={`flex items-center gap-1.5 py-0.5 px-2 rounded transition ${
@@ -175,6 +182,18 @@ export const Navigation: React.FC<Props> = ({
           >
             <Receipt className="w-3.5 h-3.5 text-rose-600" />
             <span>{t.navExpenses}</span>
+          </button>
+
+          <button
+            onClick={() => onTabChange('purchases')}
+            className={`flex items-center gap-1.5 py-0.5 px-2 rounded transition ${
+              currentTab === 'purchases'
+                ? 'bg-sky-100 text-sky-800 font-bold'
+                : 'hover:text-slate-900'
+            }`}
+          >
+            <Truck className="w-3.5 h-3.5 text-sky-600" />
+            <span>{language === 'ur' ? 'خریداری' : 'Purchases'}</span>
           </button>
 
           <button

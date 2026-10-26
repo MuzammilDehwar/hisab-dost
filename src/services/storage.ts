@@ -10,6 +10,8 @@ export function getEmptyAppState(language: ShopSettings['language'] = 'ur'): App
     customers: [],
     customerTransactions: [],
     products: [],
+    suppliers: [],
+    purchases: [],
     settings: {
       shopName: 'میری دکان',
       ownerName: '',
@@ -302,6 +304,8 @@ export function getInitialDemoState(): AppState {
     customers: initialCustomers,
     customerTransactions: initialCustomerTransactions,
     products: initialProducts,
+    suppliers: [],
+    purchases: [],
     settings: initialSettings,
   };
 }
@@ -322,6 +326,8 @@ export function loadAppState(): AppState {
       customers: Array.isArray(parsed.customers) ? parsed.customers : [],
       customerTransactions: Array.isArray(parsed.customerTransactions) ? parsed.customerTransactions : [],
       products: Array.isArray(parsed.products) ? parsed.products : [],
+      suppliers: Array.isArray(parsed.suppliers) ? parsed.suppliers : [],
+      purchases: Array.isArray(parsed.purchases) ? parsed.purchases : [],
       settings: parsed.settings ? { ...defaultDemo.settings, ...parsed.settings } : defaultDemo.settings,
     };
   } catch (err) {

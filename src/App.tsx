@@ -5,7 +5,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
-import { AppState, Customer, CustomerTransaction, Expense, Language, Product, Sale, ShopSettings } from './types';
+import { AppState, Customer, CustomerTransaction, Expense, Language, Product, Purchase, Sale, ShopSettings, Supplier } from './types';
 import { getEmptyAppState, getInitialDemoState } from './services/storage';
 import { auth } from './services/firebase';
 import { getFirebaseErrorMessage, loadUserAppState, saveUserAppState } from './services/rtdbStorage';
@@ -18,6 +18,7 @@ import { KhataView } from './views/KhataView';
 import { SalesView } from './views/SalesView';
 import { ExpensesView } from './views/ExpensesView';
 import { InventoryView } from './views/InventoryView';
+import { PurchasesView } from './views/PurchasesView';
 import { ReportsView } from './views/ReportsView';
 import { SettingsView } from './views/SettingsView';
 import { AuthView } from './views/AuthView';
@@ -517,6 +518,29 @@ export default function App() {
     }));
   };
 
+  const handleAddSupplier = (supplierData: Omit<Supplier, 'id' | 'balance' | 'createdAt' | 'updatedAt'>) => {
+    const today = getTodayDateString();
+    const newSupplier: Supplier = { ...supplierData, id: `sup-${Date.now()}`, balance: 0, createdAt: today, updatedAt: today };
+    setAppState((prev) => ({ ...prev, suppliers: [newSupplier, ...prev.suppliers] }));
+  };
+
+  const handleAddPurchase = (purchaseData: Omit<Purchase, 'id' | 'createdAt'>) => {
+    const today = getTodayDateString();
+    const newPurchase: Purchase = { ...purchaseData, id: `purchase-${Date.now()}`, createdAt: new Date().toISOString() };
+    setAppState((prev) => ({
+      ...prev,
+      suppliers: prev.suppliers.map((supplier) => supplier.id === purchaseData.supplierId
+        ? { ...supplier, balance: supplier.balance + Math.max(0, purchaseData.total - purchaseData.paidAmount), updatedAt: purchaseData.date }
+        : supplier),
+      products: purchaseData.productId
+        ? prev.products.map((product) => product.id === purchaseData.productId
+          ? { ...product, stockQuantity: product.stockQuantity + purchaseData.quantity, costPrice: purchaseData.unitCost, updatedAt: today }
+          : product)
+        : prev.products,
+      purchases: [newPurchase, ...prev.purchases],
+    }));
+  };
+
   // Handler: Update Settings
   const handleUpdateSettings = (newSettings: ShopSettings) => {
     setAppState((prev) => ({
@@ -533,6 +557,8 @@ export default function App() {
       customers: [],
       customerTransactions: [],
       products: [],
+      suppliers: [],
+      purchases: [],
       settings: {
         shopName: 'میری دکان',
         ownerName: '',
@@ -669,6 +695,18 @@ export default function App() {
             onEditProduct={handleEditProduct}
             onDeleteProduct={handleDeleteProduct}
             onAdjustStock={handleAdjustStock}
+          />
+        )}
+
+        {currentTab === 'purchases' && (
+          <PurchasesView
+            purchases={appState.purchases}
+            suppliers={appState.suppliers}
+            products={appState.products}
+            settings={appState.settings}
+            language={appState.settings.language}
+            onAddSupplier={handleAddSupplier}
+            onAddPurchase={handleAddPurchase}
           />
         )}
 
