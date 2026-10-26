@@ -124,6 +124,12 @@ export default function App() {
     document.documentElement.lang = isUrdu ? 'ur' : 'en';
   }, [appState.settings.language]);
 
+  useEffect(() => {
+    if (authReady && (!currentUser || isCloudStateReady)) {
+      window.dispatchEvent(new Event('hisab-dost-ready'));
+    }
+  }, [authReady, currentUser, isCloudStateReady]);
+
   if (!authReady) {
     return <div className="auth-shell"><p className="auth-footer">Connecting securely…</p></div>;
   }

@@ -20,7 +20,7 @@ export default defineConfig(() => {
           short_name: 'HisabDost',
           description: 'Simple mobile-first accounting and khata ledger for shopkeepers in Pakistan',
           theme_color: '#065f46',
-          background_color: '#f8fafc',
+          background_color: '#04372b',
           display: 'standalone',
           start_url: '/',
           scope: '/',
