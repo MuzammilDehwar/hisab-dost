@@ -8,6 +8,7 @@ import {
   FileBarChart2,
   Settings as SettingsIcon,
   Truck,
+  Sparkles,
 } from 'lucide-react';
 import { Language } from '../types';
 import { getTranslation } from '../utils/translations';
@@ -20,6 +21,7 @@ export type TabType =
   | 'inventory'
   | 'purchases'
   | 'reports'
+  | 'smart'
   | 'settings';
 
 interface Props {
@@ -78,6 +80,11 @@ export const Navigation: React.FC<Props> = ({
       id: 'reports' as TabType,
       label: t.navReports,
       icon: FileBarChart2,
+    },
+    {
+      id: 'smart' as TabType,
+      label: language === 'ur' ? 'اسمارٹ ٹولز' : 'Smart Tools',
+      icon: Sparkles,
     },
     {
       id: 'settings' as TabType,
@@ -194,6 +201,18 @@ export const Navigation: React.FC<Props> = ({
           >
             <Truck className="w-3.5 h-3.5 text-sky-600" />
             <span>{language === 'ur' ? 'خریداری' : 'Purchases'}</span>
+          </button>
+
+          <button
+            onClick={() => onTabChange('smart')}
+            className={`flex items-center gap-1.5 py-0.5 px-2 rounded transition ${
+              currentTab === 'smart'
+                ? 'bg-violet-100 text-violet-800 font-bold'
+                : 'hover:text-slate-900'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-violet-600" />
+            <span>{language === 'ur' ? 'اسمارٹ' : 'Smart'}</span>
           </button>
 
           <button

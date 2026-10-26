@@ -118,6 +118,12 @@ export interface ShopSettings {
   currencySymbol: string;
   language: Language;
   lastBackupDate?: string;
+  cashHandover?: {
+    date: string;
+    openingCash: number;
+    closingCash?: number;
+    closedAt?: string;
+  };
 }
 
 export interface AppState {

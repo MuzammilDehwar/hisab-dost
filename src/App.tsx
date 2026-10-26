@@ -19,6 +19,7 @@ import { SalesView } from './views/SalesView';
 import { ExpensesView } from './views/ExpensesView';
 import { InventoryView } from './views/InventoryView';
 import { PurchasesView } from './views/PurchasesView';
+import { SmartToolsView } from './views/SmartToolsView';
 import { ReportsView } from './views/ReportsView';
 import { SettingsView } from './views/SettingsView';
 import { AuthView } from './views/AuthView';
@@ -707,6 +708,21 @@ export default function App() {
             language={appState.settings.language}
             onAddSupplier={handleAddSupplier}
             onAddPurchase={handleAddPurchase}
+          />
+        )}
+
+        {currentTab === 'smart' && (
+          <SmartToolsView
+            sales={appState.sales}
+            expenses={appState.expenses}
+            customers={appState.customers}
+            transactions={appState.customerTransactions}
+            products={appState.products}
+            purchases={appState.purchases}
+            settings={appState.settings}
+            language={appState.settings.language}
+            onAddCustomerTransaction={handleAddCustomerTransaction}
+            onUpdateSettings={handleUpdateSettings}
           />
         )}
 
