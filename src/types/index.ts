@@ -124,6 +124,7 @@ export interface ShopSettings {
     closingCash?: number;
     closedAt?: string;
   };
+  budgetLimits?: Partial<Record<ExpenseCategory, number>>;
 }
 
 export interface AppState {
